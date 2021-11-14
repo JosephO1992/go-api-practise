@@ -53,11 +53,9 @@ func GetAllStaff(w http.ResponseWriter, r *http.Request) {
 func GetStaffByName(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	count := len(people)
-
 	nameQuery := vars["name"]
 
-	for i := 0; i < count; i++ {
+	for i := 0; i < len(people); i++ {
 		if people[i].FirstName == nameQuery {
 			res, err := json.Marshal(people[i])
 			if err != nil {
@@ -65,10 +63,6 @@ func GetStaffByName(w http.ResponseWriter, r *http.Request) {
 			}
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(res)
-			break
-		} else {
-			w.Write([]byte("No Result Found"))
-			break
 		}
 	}
 
