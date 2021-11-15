@@ -68,6 +68,24 @@ func GetStaffByName(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func AddStaff(w http.ResponseWriter, r *http.Request) {
+
+	var staffMember Person
+
+	err := json.NewDecoder(r.Body).Decode(&staffMember)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	people = append(people, staffMember)
+
+	fmt.Fprintf(w, "Staff Member Added: %+v", staffMember)
+	fmt.Fprintf(w, "Staff Members: %+v", people)
+
+	fmt.Println("Post made")
+}
+
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hit the home route"))
 }
@@ -77,6 +95,7 @@ func main() {
 	r.HandleFunc("/", HomeHandler).Methods("GET")
 	r.HandleFunc("/staff", GetAllStaff).Methods("GET")
 	r.HandleFunc("/staff/{name}", GetStaffByName).Methods("GET")
+	r.HandleFunc("/staff", AddStaff).Methods("POST")
 	fmt.Println("Server started")
 
 	log.Fatal(http.ListenAndServe(":8000", r))
