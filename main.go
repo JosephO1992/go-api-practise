@@ -1,10 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+
+	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/gorilla/mux"
 )
@@ -96,7 +99,15 @@ func main() {
 	r.HandleFunc("/staff", GetAllStaff).Methods("GET")
 	r.HandleFunc("/staff/{name}", GetStaffByName).Methods("GET")
 	r.HandleFunc("/staff", AddStaff).Methods("POST")
-	fmt.Println("Server started")
+
+	db, err := sql.Open("mysql", "joseph:password123@tcp(127.0.0.1:3306)/goapp")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	defer db.Close()
+
+	fmt.Println("Server started, DB connected")
 
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
