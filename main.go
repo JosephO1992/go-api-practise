@@ -17,19 +17,19 @@ type Person struct {
 }
 
 var people = []Person{
-	Person{
+	{
 		FirstName: "Joe",
 		SurName:   "O'Reilly",
 		Age:       29,
 		Salary:    35000,
 	},
-	Person{
+	{
 		FirstName: "Chloe",
 		SurName:   "Stanley",
 		Age:       23,
 		Salary:    40000,
 	},
-	Person{
+	{
 		FirstName: "James",
 		SurName:   "Hutchinson",
 		Age:       34,
