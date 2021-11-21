@@ -14,12 +14,19 @@ services:
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: example
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass
     ports:
       - 3306:3306
+    volumes:
+      - my-datavolume:/var/lib/mysql
   adminer:
     image: adminer
     restart: always
     ports:
       - 8080:8080
+volumes:
+  my-datavolume:
 
     

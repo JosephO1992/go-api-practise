@@ -96,7 +96,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	db, err := sql.Open("mysql", "root:example@tcp(127.0.0.1:3306)")
+	db, err := sql.Open("mysql", "root:example@tcp(127.0.0.1:3306)/testdb")
 	if err != nil {
 		panic(err)
 	}
