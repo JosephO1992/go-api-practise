@@ -1,10 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+
+	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/gorilla/mux"
 )
@@ -92,6 +95,13 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	db, err := sql.Open("mysql", "root:example@tcp(127.0.0.1:3306)")
+	if err != nil {
+		panic(err)
+	}
+
+	defer db.Close()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler).Methods("GET")
