@@ -1,15 +1,10 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/joho/godotenv"
-
-	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/gorilla/mux"
 )
@@ -93,13 +88,10 @@ func AddStaff(w http.ResponseWriter, r *http.Request) {
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Hit the home route"))
+	fmt.Fprintf(w, "Hi")
 }
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Err loading env file")
-	}
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler).Methods("GET")
@@ -107,14 +99,7 @@ func main() {
 	r.HandleFunc("/staff/{name}", GetStaffByName).Methods("GET")
 	r.HandleFunc("/staff", AddStaff).Methods("POST")
 
-	db, err := sql.Open("mysql", "DB_USER:DB_PASSWORD@tcp(127.0.0.1:3306)/DB_NAME")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	defer db.Close()
-
-	fmt.Println("Server started, DB connected. Connected to DB_NAME as DB_USER")
+	fmt.Println("Server started")
 
 	log.Fatal(http.ListenAndServe(":8000", r))
 }
