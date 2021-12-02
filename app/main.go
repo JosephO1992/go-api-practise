@@ -1,15 +1,15 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-
-	_ "github.com/go-sql-driver/mysql"
+	"strconv"
 
 	"github.com/gorilla/mux"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 type Person struct {
@@ -41,9 +41,18 @@ var people = []Person{
 }
 
 func GetAllStaff(w http.ResponseWriter, r *http.Request) {
-	staff := people
 
-	js, err := json.Marshal(staff)
+	db, err := gorm.Open(mysql.Open("user:pass@tcp(localhost:3306)/mydb?charset=utf8mb4&parseTime=True&loc=Local"))
+	if err != nil {
+		fmt.Println(err.Error())
+		panic("failed to connect to database")
+	}
+
+	var people []Person
+	db.Find(&people)
+	fmt.Println(people)
+
+	js, err := json.Marshal(people)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -73,18 +82,51 @@ func GetStaffByName(w http.ResponseWriter, r *http.Request) {
 
 func AddStaff(w http.ResponseWriter, r *http.Request) {
 
-	var staffMember Person
-
-	err := json.NewDecoder(r.Body).Decode(&staffMember)
+	db, err := gorm.Open(mysql.Open("user:pass@tcp(localhost:3306)/mydb?charset=utf8mb4&parseTime=True&loc=Local"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+		fmt.Println(err.Error())
+		panic("failed to connect to database")
 	}
 
-	people = append(people, staffMember)
+	vars := mux.Vars(r)
 
-	fmt.Fprintf(w, "Staff Member Added: %+v", staffMember)
-	fmt.Fprintf(w, "Staff Members: %+v", people)
+	firstName := vars["FirstName"]
+	surname := vars["SurName"]
+	age, err := strconv.ParseInt(vars["Age"], 10, 64)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+	salary, err := strconv.ParseInt(vars["Salary"], 10, 64)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
+
+	db.Create(&Person{FirstName: firstName, SurName: surname, Age: int16(age), Salary: salary})
+
+	decoder := json.NewDecoder(r.Body)
+	var staffMember Person
+	err = decoder.Decode(&staffMember)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(decoder)
+	fmt.Println(vars["FirstName"])
+	// fmt.Println(firstName)
+	// fmt.Println(surname)
+	// fmt.Println(salary)
+	// fmt.Println(age)
+
+	// err := json.NewDecoder(r.Body).Decode(&staffMember)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), http.StatusBadRequest)
+	// 	return
+	// }
+
+	// people = append(people, staffMember)
+
+	// fmt.Fprintf(w, "Staff Member Added: %+v", staffMember)
+	// fmt.Fprintf(w, "Staff Members: %+v", people)
 
 	fmt.Println("Post made")
 }
@@ -103,12 +145,19 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func initialMigration() {
+	db, err := gorm.Open(mysql.Open("user:pass@tcp(localhost:3306)/mydb?charset=utf8mb4&parseTime=True&loc=Local"))
+	if err != nil {
+		fmt.Println(err.Error())
+		panic("failed to connect to database")
+	}
+
+	db.AutoMigrate(&Person{})
+}
+
 func main() {
 
-	db, err := sql.Open("mysql", "user:pass@tcp(db:3306)/mydb")
-	if err != nil {
-		panic(err)
-	}
+	initialMigration()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler).Methods("GET")
@@ -120,5 +169,4 @@ func main() {
 
 	log.Fatal(http.ListenAndServe(":8000", r))
 
-	defer db.Close()
 }
