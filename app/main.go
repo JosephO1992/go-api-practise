@@ -64,20 +64,23 @@ func GetAllStaff(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetStaffByName(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	nameQuery := vars["name"]
-
-	for i := 0; i < len(people); i++ {
-		if people[i].FirstName == nameQuery {
-			res, err := json.Marshal(people[i])
-			if err != nil {
-				panic(err.Error())
-			}
-			w.Header().Set("Content-Type", "application/json")
-			w.Write(res)
-		}
+	db, err := gorm.Open(mysql.Open("user:pass@tcp(localhost:3306)/mydb?charset=utf8mb4&parseTime=True&loc=Local"))
+	if err != nil {
+		fmt.Println(err.Error())
+		panic("failed to connect to database")
 	}
+
+	vars := mux.Vars(r)
+	staffToFoundID := vars["id"]
+	id, err := strconv.ParseInt(staffToFoundID, 10, 64)
+	if err != nil {
+		fmt.Println(err.Error())
+		panic("Couldn't find in database")
+	}
+
+	res := db.First(&Person{}, id)
+	fmt.Print(res)
+	fmt.Println("Staff member found")
 
 }
 
@@ -150,7 +153,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler).Methods("GET")
 	r.HandleFunc("/staff", GetAllStaff).Methods("GET")
-	r.HandleFunc("/staff/{name}", GetStaffByName).Methods("GET")
+	r.HandleFunc("/staff/{id}", GetStaffByName).Methods("GET")
 	r.HandleFunc("/staff", AddStaff).Methods("POST")
 	r.HandleFunc("/staff/{id}", DeleteStaff).Methods("DELETE")
 
