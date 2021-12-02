@@ -6,11 +6,10 @@ services:
       - "8000:8000"
     volumes:
       - .:/home/app/db
-    links:
-      - db
+    networks:
+      - staff-tracker
   db:
     image: mysql
-    command: --default-authentication-plugin=mysql_native_password
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: example
@@ -21,6 +20,8 @@ services:
       - 3306:3306
     volumes:
       - my-datavolume:/var/lib/mysql
+    networks:
+      - staff-tracker
   adminer:
     image: adminer
     restart: always
@@ -28,5 +29,7 @@ services:
       - 8080:8080
 volumes:
   my-datavolume:
-
+networks:
+  staff-tracker:
+    driver: bridge
     

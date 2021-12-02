@@ -90,18 +90,25 @@ func AddStaff(w http.ResponseWriter, r *http.Request) {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
+
 	w.Write([]byte("Hit the home route"))
 	fmt.Fprintf(w, "Hi")
+
+	// insert, err := db.Query("INSERT INTO User VALUES ('Joseph')")
+	// if err != nil {
+	// 	panic(err)
+	// }
+
+	// defer insert.Close()
+
 }
 
 func main() {
 
-	db, err := sql.Open("mysql", "root:example@tcp(127.0.0.1:3306)/testdb")
+	db, err := sql.Open("mysql", "user:pass@tcp(db:3306)/mydb")
 	if err != nil {
 		panic(err)
 	}
-
-	defer db.Close()
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", HomeHandler).Methods("GET")
@@ -112,4 +119,6 @@ func main() {
 	fmt.Println("Server started")
 
 	log.Fatal(http.ListenAndServe(":8000", r))
+
+	defer db.Close()
 }
