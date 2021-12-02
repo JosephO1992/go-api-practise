@@ -13,6 +13,7 @@ import (
 )
 
 type Person struct {
+	ID        uint `gorm:"primaryKey;auto_increment;not_null"`
 	FirstName string
 	SurName   string
 	Age       int16
@@ -88,21 +89,6 @@ func AddStaff(w http.ResponseWriter, r *http.Request) {
 		panic("failed to connect to database")
 	}
 
-	vars := mux.Vars(r)
-
-	firstName := vars["FirstName"]
-	surname := vars["SurName"]
-	age, err := strconv.ParseInt(vars["Age"], 10, 64)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-	salary, err := strconv.ParseInt(vars["Salary"], 10, 64)
-	if err != nil {
-		fmt.Println(err.Error())
-	}
-
-	db.Create(&Person{FirstName: firstName, SurName: surname, Age: int16(age), Salary: salary})
-
 	decoder := json.NewDecoder(r.Body)
 	var staffMember Person
 	err = decoder.Decode(&staffMember)
@@ -110,38 +96,40 @@ func AddStaff(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	fmt.Println(decoder)
-	fmt.Println(vars["FirstName"])
-	// fmt.Println(firstName)
-	// fmt.Println(surname)
-	// fmt.Println(salary)
-	// fmt.Println(age)
-
-	// err := json.NewDecoder(r.Body).Decode(&staffMember)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), http.StatusBadRequest)
-	// 	return
-	// }
-
-	// people = append(people, staffMember)
-
-	// fmt.Fprintf(w, "Staff Member Added: %+v", staffMember)
-	// fmt.Fprintf(w, "Staff Members: %+v", people)
+	db.Create(&Person{
+		FirstName: staffMember.FirstName,
+		SurName:   staffMember.SurName,
+		Age:       staffMember.Age,
+		Salary:    staffMember.Salary})
 
 	fmt.Println("Post made")
+	fmt.Fprintf(w, "Staff Member Added: %+v", staffMember)
+}
+
+func DeleteStaff(w http.ResponseWriter, r *http.Request) {
+	db, err := gorm.Open(mysql.Open("user:pass@tcp(localhost:3306)/mydb?charset=utf8mb4&parseTime=True&loc=Local"))
+	if err != nil {
+		fmt.Println(err.Error())
+		panic("failed to connect to database")
+	}
+
+	vars := mux.Vars(r)
+	staffToDeleteId := vars["id"]
+	id, err := strconv.ParseInt(staffToDeleteId, 10, 64)
+	if err != nil {
+		fmt.Println(err.Error())
+		panic("Couldn't delete from database")
+	}
+
+	db.Delete(&Person{}, "id LIKE ?", id)
+	fmt.Println("Staff member deleted")
+
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Hit the home route"))
 	fmt.Fprintf(w, "Hi")
-
-	// insert, err := db.Query("INSERT INTO User VALUES ('Joseph')")
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// defer insert.Close()
 
 }
 
@@ -164,6 +152,7 @@ func main() {
 	r.HandleFunc("/staff", GetAllStaff).Methods("GET")
 	r.HandleFunc("/staff/{name}", GetStaffByName).Methods("GET")
 	r.HandleFunc("/staff", AddStaff).Methods("POST")
+	r.HandleFunc("/staff/{id}", DeleteStaff).Methods("DELETE")
 
 	fmt.Println("Server started")
 
