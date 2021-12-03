@@ -70,6 +70,7 @@ func GetStaffByName(w http.ResponseWriter, r *http.Request) {
 		panic("failed to connect to database")
 	}
 
+	// Get the id from the vars passed in.
 	vars := mux.Vars(r)
 	staffToFoundID := vars["id"]
 	id, err := strconv.ParseInt(staffToFoundID, 10, 64)
@@ -78,8 +79,18 @@ func GetStaffByName(w http.ResponseWriter, r *http.Request) {
 		panic("Couldn't find in database")
 	}
 
-	res := db.First(&Person{}, id)
-	fmt.Print(res)
+	var staffMember Person
+	db.First(&staffMember, id)
+
+	js, err := json.Marshal(staffMember)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
+
 	fmt.Println("Staff member found")
 
 }
